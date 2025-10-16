@@ -10,18 +10,22 @@ export default function HomeScreen() {
   const [actividades_lista, setActividadesLista] = useState<any[]>(actividadesData);
 
   const etiquetas = ['Día', 'Semana', 'Mes'];
-  
+
   return (
     <View style={styles.container}>
       <Text style={styles.titulo}>{etiquetas[pagina]}</Text>
 
       <PagerView
         style={styles.pager}
-        initialPage={0}
+        initialPage={1}
         onPageSelected={e => setPagina(e.nativeEvent.position)}
       >
+        <View key="0" style={[styles.pagina, { backgroundColor: '#fde68a' }]}>
+          <Text style={styles.texto}>Resumen general 📋</Text>
+        </View>
+        
         <View key="1" style={[styles.pagina, { backgroundColor: '#fef3c7' }]}>
-          <VistaDia actividades ={actividades_lista} />
+          <VistaDia actividades={actividades_lista} />
         </View>
 
         <View key="2" style={[styles.pagina, { backgroundColor: '#d1fae5' }]}>
