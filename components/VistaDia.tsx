@@ -8,15 +8,13 @@ interface VistaDiaProps {
 }
 
 export default function VistaDia({ actividades }: VistaDiaProps) {
-
-  const diaSemana = new Date().toLocaleDateString('es-AR', { weekday: 'long' });
+  // Obtener el día actual (en minúsculas para evitar problemas de comparación)
+  const diaSemana = new Date().toLocaleDateString('es-AR', { weekday: 'long' }).toLowerCase();
 
   const tareasDelDia = useMemo(() => {
     return actividades.filter(act => {
-      if (act.dias.includes(diaSemana)) return true;
-      if (act.fechaInicio === new Date().toISOString().slice(0, 10)) return true;
-      if (act.repeticion === 'diaria') return true;
-      return false;
+      const dias = act.dias.map(d => d.toLowerCase());
+      return dias.includes(diaSemana) || dias.includes('todos');
     });
   }, [actividades]);
 
@@ -26,6 +24,7 @@ export default function VistaDia({ actividades }: VistaDiaProps) {
         <Text>No hay actividades hoy 🎉</Text>
       ) : (
         <FlatList
+        showsVerticalScrollIndicator={false}
           data={tareasDelDia}
           keyExtractor={item => item.id}
           renderItem={({ item }) => <CardDia actividad={item} />}
