@@ -44,6 +44,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#e0887f', // 👈 ahora el fondo también pinta el notch
+    paddingBottom: 0,
   },
   pager: {
     flex: 1,

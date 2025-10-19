@@ -1,8 +1,11 @@
-import { Tabs } from 'expo-router';
+import { Tabs, usePathname, useRouter } from 'expo-router';
 import React from 'react';
-import { Image } from 'react-native';
+import { Image, Pressable } from 'react-native';
 
 export default function TabLayout() {
+  const router = useRouter();
+  const pathname = usePathname();
+
   const icons = {
     lapiz: require('../../assets/images/lapiz.png'),
     agenda: require('../../assets/images/agenda.png'),
@@ -13,74 +16,73 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarShowLabel: true,
+        tabBarShowLabel: false,
         tabBarActiveTintColor: '#fff',
         tabBarInactiveTintColor: '#fcdedc',
         tabBarStyle: {
           backgroundColor: '#e0887f',
           borderTopWidth: 0,
-          height: 85, // 🔹 más alto para íconos grandes
-          paddingBottom: 12,
-          paddingTop: 8,
-          elevation: 0, // 🔹 sin sombra blanca
-          shadowOpacity: 0,
-        },
-        tabBarLabelStyle: {
-          fontWeight: '700',
-          fontSize: 14,
+          height: 80,
+          paddingTop: 0,
         },
       }}
     >
-
-      {/* 🟣 Izquierda - Lápiz */}
+      {/* 📝 Nueva tarea */}
       <Tabs.Screen
-        name="editar"
+        name="NuevaTarea"
         options={{
-          title: 'Editar',
           tabBarIcon: () => (
             <Image
               source={icons.lapiz}
-              style={{
-                width: 36,
-                height: 36,
-                resizeMode: 'contain',
-              }}
+              style={{ width: 60, height: 60, resizeMode: 'contain' }}
             />
           ),
         }}
       />
 
-      {/* 🔵 Centro - Agenda */}
+      {/* 📅 Botón central - Agenda / Home */}
       <Tabs.Screen
-        name="agenda"
+        name="index"
         options={{
-          title: 'Agenda',
-          tabBarIcon: () => (
-            <Image
-              source={icons.agenda}
-              style={{
-                width: 42,
-                height: 42,
-                resizeMode: 'contain',
+          tabBarButton: (props) => (
+            <Pressable
+              {...props}
+              onPress={() => {
+                if (pathname === '/(tabs)') {
+                  // Si estás en el home, ir a la agenda
+                  router.push('/Agenda');
+                } else {
+                  // Si estás en la agenda, volver al home
+                  router.push('/(tabs)');
+                }
               }}
-            />
+              style={{
+                alignItems: 'center',
+                justifyContent: 'center',
+                top: -10, // 🔹 un poquito más arriba
+              }}
+            >
+              <Image
+                source={icons.agenda}
+                style={{
+                  width: 78,
+                  height: 78,
+                  resizeMode: 'contain',
+                }}
+              />
+            </Pressable>
           ),
         }}
       />
 
-      {/* 🟢 Derecha - Configuración */}
+      {/* ⚙️ Configuración */}
       <Tabs.Screen
         name="config"
         options={{
-          title: 'Config',
           tabBarIcon: () => (
             <Image
               source={icons.configuracion}
-              style={{
-                width: 36,
-                height: 36,
-                resizeMode: 'contain',
-              }}
+              style={{ width: 60, height: 60, resizeMode: 'contain' }}
             />
           ),
         }}
