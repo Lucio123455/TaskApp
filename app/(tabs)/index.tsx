@@ -1,6 +1,7 @@
 import VistaDia from '@/components/VistaDia';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
 import { actividadesData } from '../../data/actividades';
 
@@ -21,7 +22,7 @@ export default function HomeScreen() {
         onPageSelected={e => setPagina(e.nativeEvent.position)}
       >
         <View key="0" style={[styles.pagina, { backgroundColor: '#fde68a' }]}>
-          <Text style={styles.texto}>Resumen general 📋</Text>
+          <Text style={styles.texto}>Resumen  </Text>
         </View>
         
         <View key="1" style={[styles.pagina, { backgroundColor: '#fef3c7' }]}>
