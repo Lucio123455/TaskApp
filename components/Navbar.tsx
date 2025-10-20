@@ -7,22 +7,56 @@ interface NavbarProps {
 }
 
 export default function Navbar({ onChangePage, currentPage }: NavbarProps) {
-  const icons: { src: any; target: number | 'modal' }[] = [
-    { src: require('@/assets/images/configuracion.png'), target: 0 },
-    { src: require('@/assets/images/agenda.png'), target: 1 },
-    { src: require('@/assets/images/lapiz.png'), target: 'modal' },
-  ];
+  // 📊 Determina en qué zona estás
+  const isInNotes = currentPage === 0 || currentPage === 1;
+  const isInConfig = currentPage === 0;
+
+  // 🔁 Definimos íconos dinámicos
+  const icons: { src: any; target: number | 'modal'; key: string }[] = [];
+
+  // ⚙️ Agregar botón de configuración solo si no estás en configuración
+  if (!isInConfig) {
+    icons.push({
+      src: require('@/assets/images/configuracion.png'),
+      target: 0,
+      key: 'config',
+    });
+  }
+
+  // 📒 / ✅ Central dinámico
+  icons.push({
+    src: isInNotes
+      ? require('@/assets/images/task.png') // en notas/config → volver a tareas
+      : require('@/assets/images/agenda.png'), // en tareas → volver a notas
+    target: isInNotes ? 2 : 1,
+    key: 'central',
+  });
+
+  // ✏️ / 📒 Derecho dinámico
+  icons.push({
+    src: isInConfig
+      ? require('@/assets/images/agenda.png') // en config → notas
+      : require('@/assets/images/lapiz.png'), // en resto → modal
+    target: isInConfig ? 1 : 'modal',
+    key: 'right',
+  });
 
   return (
-    <View style={styles.navbar}>
-      {icons.map((icon, index) => {
+    <View
+      style={[
+        styles.navbar,
+        isInConfig && styles.navbarCentered, // centra si hay solo 2 íconos
+      ]}
+    >
+      {icons.map((icon) => {
         const isActive =
           currentPage === icon.target ||
-          ((currentPage === 2 || currentPage === 3) && icon.target === 1);
+          ((currentPage >= 2 && currentPage <= 4) &&
+            icon.target === (isInNotes ? 2 : 1));
 
         return (
           <Pressable
-            key={index}
+            key={icon.key}
             onPress={() => onChangePage(icon.target)}
             style={styles.button}
           >
@@ -44,23 +78,31 @@ export default function Navbar({ onChangePage, currentPage }: NavbarProps) {
 const styles = StyleSheet.create({
   navbar: {
     flexDirection: 'row',
-    justifyContent: 'space-between', // ⚙️ izquierda, 📒 centro, ✏️ derecha
+    justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#e0887f',
+    backgroundColor: '#1E2329', // tono oscuro elegante
     paddingHorizontal: 30,
     paddingVertical: 10,
-    borderTopWidth: 2,
-    borderColor: '#fff',
+    borderTopWidth: 1.5,
+    borderColor: '#2E3339', // sutil separación
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 10,
+  },
+  navbarCentered: {
+    justifyContent: 'space-evenly', // 🔹 centra los dos íconos
   },
   button: {
-    padding: 0,
+    padding: 4,
+    borderRadius: 50,
   },
   icon: {
-    width: 60,
-    height: 60,
+    width: 58,
+    height: 58,
     transform: [{ scale: 1 }],
   },
   iconActive: {
-    transform: [{ scale: 1.2 }], // 🔹 crece suavemente cuando está activo
+    transform: [{ scale: 1.2 }],
   },
 });

@@ -13,7 +13,6 @@ export default function ConfigScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#e0887f',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -21,12 +20,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 26,
     fontWeight: '800',
-    color: '#fff',
+    color: '#000000ff',
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 16,
-    color: '#fcdedc',
+    color: '#000000ff',
     textAlign: 'center',
   },
 });

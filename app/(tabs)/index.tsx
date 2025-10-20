@@ -5,68 +5,116 @@ import { useRef, useState } from 'react';
 import { Modal, StyleSheet, Text, View } from 'react-native';
 import 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { actividadesData } from '../../data/actividades';
 import ConfigScreen from './config';
 
 export default function HomeScreen() {
-  const [pagina, setPagina] = useState(1); // empieza en Agenda (1)
-  const [modalVisible, setModalVisible] = useState(false); // para el modal del lápiz
+  const [pagina, setPagina] = useState(2); // 2 = principal
+  const [modalTareaVisible, setModalTareaVisible] = useState(false);
+  const [modalNotaVisible, setModalNotaVisible] = useState(false);
   const [actividades_lista] = useState<any[]>(actividadesData);
   const pagerRef = useRef<PagerView>(null);
 
+  // 👇 Cambiamos el comportamiento del lápiz según la página
   const handleChangePage = (index: number | 'modal') => {
     if (index === 'modal') {
-      setModalVisible(true);
+      if (pagina === 1) setModalNotaVisible(true); // 📒 crear nota
+      else setModalTareaVisible(true); // ✅ crear tarea
     } else {
       pagerRef.current?.setPage(index);
     }
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
       <PagerView
         ref={pagerRef}
         style={styles.pager}
-        initialPage={1}
+        initialPage={2} // arranca en la principal
         onPageSelected={e => setPagina(e.nativeEvent.position)}
       >
+        {/* ⚙️ Configuración */}
         <View key="0" style={[styles.pagina, styles.colorFondo]}>
           <ConfigScreen />
         </View>
 
+        {/* 🗒️ Lista de notas */}
         <View key="1" style={[styles.pagina, styles.colorFondo]}>
+          <Text style={styles.texto}>🗒️ Lista de notas</Text>
+          <Text style={styles.subtexto}>
+            Mostrará tus notas creadas o pendientes.
+          </Text>
+        </View>
+
+        {/* 📆 Principal */}
+        <View key="2" style={[styles.pagina, styles.colorFondo]}>
           <VistaDia actividades={actividades_lista} />
         </View>
 
-        <View key="2" style={[styles.pagina, styles.colorFondo]}>
+        {/* 📅 Semana */}
+        <View key="3" style={[styles.pagina, styles.colorFondo]}>
           <VistaSemanal actividades={actividades_lista} />
         </View>
 
-        <View key="3" style={[styles.pagina, styles.colorFondo]}>
+        {/* 🗓️ Mes */}
+        <View key="4" style={[styles.pagina, styles.colorFondo]}>
           <Text style={styles.texto}>Vista del Mes 🗓️</Text>
         </View>
       </PagerView>
 
+      {/* 🔘 Navbar */}
       <Navbar currentPage={pagina} onChangePage={handleChangePage} />
 
-      {/* Modal del botón lápiz */}
-      <Modal visible={modalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)}>
+      {/* ✅ Modal de crear tarea */}
+      <Modal
+        visible={modalTareaVisible}
+        animationType="slide"
+        onRequestClose={() => setModalTareaVisible(false)}
+      >
         <View style={styles.modalContainer}>
-          <Text style={styles.modalText}>Nueva tarea ✏️</Text>
-          {/* Acá iría tu componente de creación de tarea */}
-          <Text onPress={() => setModalVisible(false)} style={styles.cerrar}>
+          <Text style={styles.modalTitle}>Nueva tarea ✏️</Text>
+          <Text style={styles.modalText}>
+            Aquí podrás agregar una nueva tarea.
+          </Text>
+          <Text
+            onPress={() => setModalTareaVisible(false)}
+            style={styles.cerrar}
+          >
             Cerrar
           </Text>
         </View>
       </Modal>
-    </View>
+
+      {/* 📝 Modal de crear nota */}
+      <Modal
+        visible={modalNotaVisible}
+        animationType="slide"
+        onRequestClose={() => setModalNotaVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>Nueva nota 📝</Text>
+          <Text style={styles.modalText}>
+            Aquí podrás escribir una nota o recordatorio rápido.
+          </Text>
+          <Text
+            onPress={() => setModalNotaVisible(false)}
+            style={styles.cerrar}
+          >
+            Cerrar
+          </Text>
+        </View>
+      </Modal>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#e0887f',
+    backgroundColor: '#0E1116', // fondo general (oscuro elegante)
+    paddingTop: 6,
+    paddingBottom: 6,
   },
   pager: {
     flex: 1,
@@ -77,26 +125,44 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   colorFondo: {
-    backgroundColor: '#e0887f',
+    backgroundColor: '#E8F1ED', // fondo claro de secciones
   },
   texto: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: '700',
+    textAlign: 'center',
+    color: '#1C1C1C',
+  },
+  subtexto: {
+    fontSize: 16,
+    marginTop: 10,
+    color: '#5E5E5E',
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#fbe9e7',
+    backgroundColor: '#E8F1ED',
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 24,
+  },
+  modalTitle: {
+    fontSize: 26,
+    fontWeight: '700',
+    color: '#1C1C1C',
+    marginBottom: 10,
   },
   modalText: {
-    fontSize: 22,
-    fontWeight: '600',
-    marginBottom: 20,
+    fontSize: 18,
+    color: '#5E5E5E',
+    textAlign: 'center',
   },
   cerrar: {
-    color: '#e0887f',
-    fontWeight: '600',
-    fontSize: 16,
+    color: '#37C997', // acento verde-menta
+    fontWeight: '700',
+    fontSize: 18,
+    marginTop: 32,
   },
 });
+
