@@ -12,6 +12,7 @@ export const actividadesData = [
     vistaDia: true,
     vistaSemanal: true,
     vistaMensual: false,
+    completada: false,
   },
   {
     id: "2",
@@ -26,6 +27,7 @@ export const actividadesData = [
     vistaDia: true,
     vistaSemanal: true,
     vistaMensual: false,
+    completada: false,
   },
   {
     id: "3",
@@ -40,6 +42,7 @@ export const actividadesData = [
     vistaDia: true,
     vistaSemanal: true,
     vistaMensual: false,
+    completada: false,
   },
   {
     id: "4",
@@ -54,6 +57,7 @@ export const actividadesData = [
     vistaDia: false,
     vistaSemanal: true,
     vistaMensual: true,
+    completada: false,
   },
   {
     id: "5",
@@ -68,6 +72,7 @@ export const actividadesData = [
     vistaDia: true,
     vistaSemanal: true,
     vistaMensual: false,
+    completada: false,
   },
   {
     id: "6",
@@ -82,6 +87,7 @@ export const actividadesData = [
     vistaDia: true,
     vistaSemanal: true,
     vistaMensual: false,
+    completada: false,
   },
   {
     id: "7",
@@ -96,6 +102,7 @@ export const actividadesData = [
     vistaDia: true,
     vistaSemanal: false,
     vistaMensual: false,
+    completada: false,
   },
   {
     id: "8",
@@ -110,6 +117,7 @@ export const actividadesData = [
     vistaDia: false,
     vistaSemanal: true,
     vistaMensual: true,
+    completada: false,
   },
   {
     id: "9",
@@ -124,6 +132,7 @@ export const actividadesData = [
     vistaDia: true,
     vistaSemanal: true,
     vistaMensual: false,
+    completada: false,
   },
   {
     id: "10",
@@ -138,6 +147,7 @@ export const actividadesData = [
     vistaDia: false,
     vistaSemanal: false,
     vistaMensual: true,
+    completada: false,
   },
   {
     id: "11",
@@ -152,9 +162,8 @@ export const actividadesData = [
     vistaDia: false,
     vistaSemanal: true,
     vistaMensual: true,
+    completada: false,
   },
-
-  // 🚀 Nuevas tareas agregadas
   {
     id: "12",
     titulo: "Meditación matutina",
@@ -168,6 +177,7 @@ export const actividadesData = [
     vistaDia: true,
     vistaSemanal: false,
     vistaMensual: false,
+    completada: false,
   },
   {
     id: "13",
@@ -182,6 +192,7 @@ export const actividadesData = [
     vistaDia: true,
     vistaSemanal: true,
     vistaMensual: false,
+    completada: false,
   },
   {
     id: "14",
@@ -196,6 +207,7 @@ export const actividadesData = [
     vistaDia: true,
     vistaSemanal: true,
     vistaMensual: false,
+    completada: false,
   },
   {
     id: "15",
@@ -208,8 +220,9 @@ export const actividadesData = [
     repeticion: "semanal",
     color: "#F5D0FE",
     vistaDia: true,
-    vistaSemanal: false,
+    vistaSemanal: true,
     vistaMensual: false,
+    completada: false,
   },
   {
     id: "16",
@@ -224,6 +237,7 @@ export const actividadesData = [
     vistaDia: true,
     vistaSemanal: false,
     vistaMensual: true,
+    completada: false,
   },
   {
     id: "17",
@@ -238,6 +252,7 @@ export const actividadesData = [
     vistaDia: true,
     vistaSemanal: true,
     vistaMensual: false,
+    completada: false,
   },
   {
     id: "18",
@@ -252,6 +267,7 @@ export const actividadesData = [
     vistaDia: false,
     vistaSemanal: false,
     vistaMensual: true,
+    completada: false,
   },
   {
     id: "19",
@@ -266,6 +282,7 @@ export const actividadesData = [
     vistaDia: true,
     vistaSemanal: true,
     vistaMensual: false,
+    completada: false,
   },
   {
     id: "20",
@@ -280,6 +297,7 @@ export const actividadesData = [
     vistaDia: true,
     vistaSemanal: true,
     vistaMensual: false,
+    completada: false,
   },
   {
     id: "21",
@@ -294,6 +312,6 @@ export const actividadesData = [
     vistaDia: true,
     vistaSemanal: true,
     vistaMensual: false,
+    completada: false,
   },
 ];
-

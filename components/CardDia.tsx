@@ -1,58 +1,106 @@
 import { Actividad } from '@/data/types';
-import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Audio } from 'expo-av';
+import React, { useRef, useState } from 'react';
+import {
+  Animated,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 interface CardDiaProps {
   actividad: Actividad;
-  onEdit?: (actividad: Actividad) => void;
+  onToggleComplete?: (actividad: Actividad, completada: boolean) => void;
 }
 
-export default function CardDia({ actividad, onEdit }: CardDiaProps) {
+export default function CardDia({ actividad, onToggleComplete }: CardDiaProps) {
+  const [completada, setCompletada] = useState(actividad.completada || false);
+  const anim = useRef(new Animated.Value(0)).current;
+
+  const playSound = async () => {
+    const { sound } = await Audio.Sound.createAsync(
+      require('@/assets/sounds/lapiz.mp3') // ✏️ sonido de lápiz o tachado
+    );
+    await sound.playAsync();
+  };
+
+  const toggleComplete = async () => {
+    const newState = !completada;
+    setCompletada(newState);
+    onToggleComplete?.(actividad, newState);
+
+    Animated.timing(anim, {
+      toValue: newState ? 1 : 0,
+      duration: 250,
+      useNativeDriver: false,
+    }).start();
+
+    // 🔊 Reproduce el sonido solo al completar
+    if (newState) await playSound();
+  };
+  // Interpolaciones para efectos suaves
+  const scale = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0.97],
+  });
+
+  const background = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [actividad.color || '#FDE68A', '#d3d3d3'],
+  });
+
+  const shadow = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [6, 1],
+  });
+
   return (
-    <View style={styles.wrapper}>
-      <View style={styles.shadowWrapper}>
-        <View style={[styles.card, { backgroundColor: actividad.color || '#FDE68A' }]}>
-          {/* 🕓 Horarios */}
+    <Animated.View
+      style={[
+        styles.wrapper,
+        { transform: [{ scale }] },
+      ]}
+    >
+      <Pressable onPress={toggleComplete}>
+        <Animated.View
+          style={[
+            styles.card,
+            {
+              backgroundColor: background,
+              shadowOpacity: 0.25,
+              elevation: shadow,
+            },
+          ]}
+        >
+          {/* 🕓 Horario */}
           <View style={styles.horaContainer}>
-            <Text style={styles.hora}>{actividad.horaInicio || '--:--'}</Text>
-            {actividad.horaFin ? (
+            <Text style={styles.hora}>{actividad.horaInicio}</Text>
+            {actividad.horaFin && (
               <Text style={styles.horaFin}>{actividad.horaFin}</Text>
-            ) : null}
+            )}
           </View>
 
           {/* 🏷️ Título */}
-          <View style={styles.centerContent}>
-            <Text style={styles.titulo} numberOfLines={2}>
-              {actividad.titulo}
-            </Text>
-          </View>
-
-          {/* ✏️ Botón de edición */}
-          <Pressable onPress={() => onEdit?.(actividad)} style={styles.editButton}>
-            <Image
-              source={require('@/assets/images/lapiz.png')}
-              style={styles.iconEdit}
-              resizeMode="contain"
-            />
-          </Pressable>
-        </View>
-      </View>
-    </View>
+          <Text
+            style={[
+              styles.titulo,
+              completada && styles.tituloCompletado,
+            ]}
+            numberOfLines={2}
+          >
+            {actividad.titulo}
+          </Text>
+        </Animated.View>
+      </Pressable>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   wrapper: {
     alignItems: 'center',
-    marginBottom: 18,
-  },
-  shadowWrapper: {
-    borderRadius: 26,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    shadowOffset: { width: 2, height: 4 },
-    elevation: 5,
+    marginBottom: 20,
   },
   card: {
     flexDirection: 'row',
@@ -63,10 +111,12 @@ const styles = StyleSheet.create({
     minHeight: 100,
     paddingHorizontal: 18,
     paddingVertical: 12,
+    shadowColor: '#000',
+    shadowRadius: 8,
+    shadowOffset: { width: 2, height: 4 },
   },
   horaContainer: {
     alignItems: 'flex-start',
-    justifyContent: 'center',
   },
   hora: {
     fontSize: 18,
@@ -77,29 +127,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
-    marginTop: 2,
-  },
-  centerContent: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: 10,
   },
   titulo: {
+    flex: 1,
+    textAlign: 'center',
     fontSize: 20,
     fontWeight: '800',
     color: '#111',
-    textAlign: 'center',
+    marginLeft: 10,
     letterSpacing: 0.5,
   },
-  editButton: {
-    padding: 6,
-    borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  iconEdit: {
-    width: 32,
-    height: 32,
+  tituloCompletado: {
+    textDecorationLine: 'line-through',
+    opacity: 0.4,
   },
 });
-

@@ -13,6 +13,7 @@ export interface Actividad {
   vistaDia: boolean;
   vistaSemanal: boolean;
   vistaMensual: boolean;
+  completada?: boolean;
 }
 
 
