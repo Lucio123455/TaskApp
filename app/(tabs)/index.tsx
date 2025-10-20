@@ -4,9 +4,10 @@ import ModalTarea from '@/components/ModalTarea';
 import ModalVistaPrevia from '@/components/ModalVistaPrevia';
 import Navbar from '@/components/Navbar';
 import VistaDia from '@/components/VistaDia';
+import VistaMes from '@/components/VistaMes';
 import VistaSemanal from '@/components/VistaSemanal';
 import { useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -90,7 +91,7 @@ export default function HomeScreen() {
 
         {/* 🗓️ Mes */}
         <View key="4" style={[styles.pagina, styles.colorFondo]}>
-          <Text style={styles.texto}>Vista del Mes 🗓️</Text>
+          <VistaMes actividades={actividades_lista} />
         </View>
       </PagerView>
 
