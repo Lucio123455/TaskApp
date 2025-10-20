@@ -1,11 +1,8 @@
-import { Tabs, usePathname, useRouter } from 'expo-router';
+import { Tabs } from 'expo-router';
 import React from 'react';
-import { Image, Pressable } from 'react-native';
+import { Image } from 'react-native';
 
 export default function TabLayout() {
-  const router = useRouter();
-  const pathname = usePathname();
-
   const icons = {
     lapiz: require('../../assets/images/lapiz.png'),
     agenda: require('../../assets/images/agenda.png'),
@@ -16,14 +13,13 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarShowLabel: false,
+        tabBarShowLabel: false, // ❌ sin texto
         tabBarActiveTintColor: '#fff',
         tabBarInactiveTintColor: '#fcdedc',
         tabBarStyle: {
           backgroundColor: '#e0887f',
           borderTopWidth: 0,
-          height: 80,
-          paddingTop: 0,
+          height: 0, // 🔹 barra más alta
         },
       }}
     >
@@ -34,43 +30,30 @@ export default function TabLayout() {
           tabBarIcon: () => (
             <Image
               source={icons.lapiz}
-              style={{ width: 60, height: 60, resizeMode: 'contain' }}
+              style={{
+                width: 65, // 🔹 más grande
+                height: 65,
+                resizeMode: 'contain',
+              }}
             />
           ),
         }}
       />
 
-      {/* 📅 Botón central - Agenda / Home */}
+      {/* 📅 Agenda */}
       <Tabs.Screen
         name="index"
         options={{
-          tabBarButton: (props) => (
-            <Pressable
-              {...props}
-              onPress={() => {
-                if (pathname === '/(tabs)') {
-                  // Si estás en el home, ir a la agenda
-                  router.push('/Agenda');
-                } else {
-                  // Si estás en la agenda, volver al home
-                  router.push('/(tabs)');
-                }
-              }}
+          tabBarIcon: () => (
+            <Image
+              source={icons.agenda}
               style={{
-                alignItems: 'center',
-                justifyContent: 'center',
-                top: -10, // 🔹 un poquito más arriba
+                width: 75, // 🔹 más grande aún (destacado)
+                height: 75,
+                resizeMode: 'contain',
+                marginBottom: 5,
               }}
-            >
-              <Image
-                source={icons.agenda}
-                style={{
-                  width: 78,
-                  height: 78,
-                  resizeMode: 'contain',
-                }}
-              />
-            </Pressable>
+            />
           ),
         }}
       />
@@ -82,7 +65,11 @@ export default function TabLayout() {
           tabBarIcon: () => (
             <Image
               source={icons.configuracion}
-              style={{ width: 60, height: 60, resizeMode: 'contain' }}
+              style={{
+                width: 65,
+                height: 65,
+                resizeMode: 'contain',
+              }}
             />
           ),
         }}
