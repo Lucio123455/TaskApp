@@ -9,35 +9,52 @@ interface CardSemanaProps {
 }
 
 export default function CardSemana({ dia, fecha, actividades }: CardSemanaProps) {
-  const headerColor = '#ccdfcaff';
+  // Ordenar por horaInicio (si existe)
+  const actividadesOrdenadas = [...actividades].sort((a, b) => {
+    if (!a.horaInicio) return 1;
+    if (!b.horaInicio) return -1;
+    return a.horaInicio.localeCompare(b.horaInicio);
+  });
+
+  const headerColor = '#fab98dff'; // verde menta suave
 
   return (
     <View style={styles.wrapper}>
       {/* Encabezado del día */}
-      <View style={[styles.outerBorder, { backgroundColor: '#000' }]}>
-        <View style={[styles.card, { backgroundColor: headerColor }]}>
-          <Text style={styles.dia}>
-            {fecha}  {dia.toUpperCase()}
+      <View style={styles.shadowWrapper}>
+        <View style={[styles.header, { backgroundColor: headerColor }]}>
+          <Text style={styles.diaTexto}>
+            {fecha ? `${fecha}  ` : ''}
+            {dia.toUpperCase()}
           </Text>
         </View>
-      </View>
 
-      {/* Subtarjetas de actividades */}
-      {actividades.length > 0 && (
-        <View style={styles.subsContainer}>
-          {actividades.map((act) => (
-            <View
-              key={act.id}
-              style={[
-                styles.subCard,
-                { backgroundColor: act.color || headerColor },
-              ]}
-            >
-              <Text style={styles.titulo}>{act.titulo.toUpperCase()}</Text>
-            </View>
-          ))}
-        </View>
-      )}
+        {/* Subtarjetas (actividades) */}
+        {actividadesOrdenadas.length > 0 && (
+          <View style={styles.subsContainer}>
+            {actividadesOrdenadas.map((act) => (
+              <View
+                key={act.id}
+                style={[
+                  styles.subCard,
+                  { backgroundColor: act.color || headerColor },
+                ]}
+              >
+                <View style={styles.subHeader}>
+                  <Text style={styles.hora}>
+                    {act.horaInicio
+                      ? act.horaFin
+                        ? `${act.horaInicio} - ${act.horaFin}`
+                        : act.horaInicio
+                      : ''}
+                  </Text>
+                </View>
+                <Text style={styles.titulo}>{act.titulo}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
     </View>
   );
 }
@@ -47,43 +64,52 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
-  outerBorder: {
-    borderRadius: 26,
-    padding: 3,
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    shadowOffset: { width: 3, height: 4 },
-    elevation: 6,
-  },
-  card: {
+  shadowWrapper: {
     width: 320,
-    height: 80,
-    borderRadius: 22,
-    flexDirection: 'row',
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+    overflow: 'hidden',
+  },
+  header: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dia: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: '#111',
+  diaTexto: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#1C1C1C',
   },
   subsContainer: {
-    width: 320,
-    marginTop: 8,
-    gap: 8,
+    backgroundColor: '#f9f9f9',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    overflow: 'hidden',
   },
   subCard: {
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#111',
     paddingVertical: 10,
     paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderColor: '#ddd',
+  },
+  subHeader: {
+    marginBottom: 4,
+  },
+  hora: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
   },
   titulo: {
-    fontSize: 15,
-    fontWeight: '900',
+    fontSize: 16,
+    fontWeight: '700',
     color: '#111',
   },
 });

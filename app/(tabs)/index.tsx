@@ -1,8 +1,12 @@
+import ListaDeNotas from '@/components/ListaDeNotas';
+import ModalNota from '@/components/ModalNota';
+import ModalTarea from '@/components/ModalTarea';
+import ModalVistaPrevia from '@/components/ModalVistaPrevia';
 import Navbar from '@/components/Navbar';
 import VistaDia from '@/components/VistaDia';
 import VistaSemanal from '@/components/VistaSemanal';
 import { useRef, useState } from 'react';
-import { Modal, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,16 +17,36 @@ export default function HomeScreen() {
   const [pagina, setPagina] = useState(2); // 2 = principal
   const [modalTareaVisible, setModalTareaVisible] = useState(false);
   const [modalNotaVisible, setModalNotaVisible] = useState(false);
+  const [notaSeleccionada, setNotaSeleccionada] = useState(null);
+  const [notas, setNotas] = useState<any[]>([]);
   const [actividades_lista] = useState<any[]>(actividadesData);
   const pagerRef = useRef<PagerView>(null);
+  const [modalVistaVisible, setModalVistaVisible] = useState(false);
 
-  // 👇 Cambiamos el comportamiento del lápiz según la página
+  // 🔁 Manejo de navegación
   const handleChangePage = (index: number | 'modal') => {
     if (index === 'modal') {
-      if (pagina === 1) setModalNotaVisible(true); // 📒 crear nota
-      else setModalTareaVisible(true); // ✅ crear tarea
+      if (pagina === 1) {
+        setNotaSeleccionada(null); // nueva nota
+        setModalNotaVisible(true);
+      } else {
+        setModalTareaVisible(true); // crear tarea
+      }
     } else {
       pagerRef.current?.setPage(index);
+    }
+  };
+
+  // 💾 Guardar nota (nueva o editada)
+  const handleSaveNota = (nota: any) => {
+    if (notaSeleccionada) {
+      // editar existente
+      setNotas(prev =>
+        prev.map(n => (n.id === nota.id ? nota : n))
+      );
+    } else {
+      // nueva
+      setNotas(prev => [...prev, nota]);
     }
   };
 
@@ -31,7 +55,7 @@ export default function HomeScreen() {
       <PagerView
         ref={pagerRef}
         style={styles.pager}
-        initialPage={2} // arranca en la principal
+        initialPage={2}
         onPageSelected={e => setPagina(e.nativeEvent.position)}
       >
         {/* ⚙️ Configuración */}
@@ -41,10 +65,17 @@ export default function HomeScreen() {
 
         {/* 🗒️ Lista de notas */}
         <View key="1" style={[styles.pagina, styles.colorFondo]}>
-          <Text style={styles.texto}>🗒️ Lista de notas</Text>
-          <Text style={styles.subtexto}>
-            Mostrará tus notas creadas o pendientes.
-          </Text>
+          <ListaDeNotas
+            notas={notas}
+            onPreview={(nota: any) => {
+              setNotaSeleccionada(nota);
+              setModalVistaVisible(true);
+            }}
+            onEdit={(nota: any) => {
+              setNotaSeleccionada(nota);
+              setModalNotaVisible(true);
+            }}
+          />
         </View>
 
         {/* 📆 Principal */}
@@ -67,44 +98,35 @@ export default function HomeScreen() {
       <Navbar currentPage={pagina} onChangePage={handleChangePage} />
 
       {/* ✅ Modal de crear tarea */}
-      <Modal
+      <ModalTarea
         visible={modalTareaVisible}
-        animationType="slide"
-        onRequestClose={() => setModalTareaVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Nueva tarea ✏️</Text>
-          <Text style={styles.modalText}>
-            Aquí podrás agregar una nueva tarea.
-          </Text>
-          <Text
-            onPress={() => setModalTareaVisible(false)}
-            style={styles.cerrar}
-          >
-            Cerrar
-          </Text>
-        </View>
-      </Modal>
+        onClose={() => setModalTareaVisible(false)}
+        onSave={(nuevaTarea) => {
+          console.log('Tarea guardada:', nuevaTarea);
+          setModalTareaVisible(false);
+        }}
+      />
 
-      {/* 📝 Modal de crear nota */}
-      <Modal
+
+      {/* 📝 Modal de nota (crear o editar) */}
+      <ModalNota
         visible={modalNotaVisible}
-        animationType="slide"
-        onRequestClose={() => setModalNotaVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Nueva nota 📝</Text>
-          <Text style={styles.modalText}>
-            Aquí podrás escribir una nota o recordatorio rápido.
-          </Text>
-          <Text
-            onPress={() => setModalNotaVisible(false)}
-            style={styles.cerrar}
-          >
-            Cerrar
-          </Text>
-        </View>
-      </Modal>
+        nota={notaSeleccionada}
+        onClose={() => {
+          setModalNotaVisible(false);
+          setNotaSeleccionada(null);
+        }}
+        onSave={handleSaveNota}
+      />
+
+      <ModalVistaPrevia
+        visible={modalVistaVisible}
+        nota={notaSeleccionada}
+        onClose={() => {
+          setModalVistaVisible(false);
+          setNotaSeleccionada(null);
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -115,6 +137,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#0E1116', // fondo general (oscuro elegante)
     paddingTop: 6,
     paddingBottom: 6,
+  },
+  notaItem: {
+    fontSize: 18,
+    color: '#1C1C1C',
+    marginVertical: 6,
+    paddingHorizontal: 10,
   },
   pager: {
     flex: 1,
