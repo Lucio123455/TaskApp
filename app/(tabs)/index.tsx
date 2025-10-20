@@ -2,29 +2,36 @@ import Navbar from '@/components/Navbar';
 import VistaDia from '@/components/VistaDia';
 import VistaSemanal from '@/components/VistaSemanal';
 import { useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Modal, StyleSheet, Text, View } from 'react-native';
 import 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
 import { actividadesData } from '../../data/actividades';
+import ConfigScreen from './config';
 
 export default function HomeScreen() {
-  const [pagina, setPagina] = useState(0);
-  const [actividades_lista, setActividadesLista] = useState<any[]>(actividadesData);
-
-  const etiquetas = ['Resumen', 'Día', 'Semana', 'Mes'];
+  const [pagina, setPagina] = useState(1); // empieza en Agenda (1)
+  const [modalVisible, setModalVisible] = useState(false); // para el modal del lápiz
+  const [actividades_lista] = useState<any[]>(actividadesData);
   const pagerRef = useRef<PagerView>(null);
+
+  const handleChangePage = (index: number | 'modal') => {
+    if (index === 'modal') {
+      setModalVisible(true);
+    } else {
+      pagerRef.current?.setPage(index);
+    }
+  };
 
   return (
     <View style={styles.container}>
       <PagerView
-        ref={pagerRef} // ✅ AGREGALO AQUÍ
-
+        ref={pagerRef}
         style={styles.pager}
         initialPage={1}
         onPageSelected={e => setPagina(e.nativeEvent.position)}
       >
         <View key="0" style={[styles.pagina, styles.colorFondo]}>
-          <Text style={styles.texto}>Resumen</Text>
+          <ConfigScreen />
         </View>
 
         <View key="1" style={[styles.pagina, styles.colorFondo]}>
@@ -39,11 +46,19 @@ export default function HomeScreen() {
           <Text style={styles.texto}>Vista del Mes 🗓️</Text>
         </View>
       </PagerView>
-      <Navbar
-        currentPage={pagina}
-        onChangePage={(index) => pagerRef.current?.setPage(index)}
-      />
 
+      <Navbar currentPage={pagina} onChangePage={handleChangePage} />
+
+      {/* Modal del botón lápiz */}
+      <Modal visible={modalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalText}>Nueva tarea ✏️</Text>
+          {/* Acá iría tu componente de creación de tarea */}
+          <Text onPress={() => setModalVisible(false)} style={styles.cerrar}>
+            Cerrar
+          </Text>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -51,7 +66,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#e0887f', // color base de fondo
+    backgroundColor: '#e0887f',
   },
   pager: {
     flex: 1,
@@ -67,5 +82,21 @@ const styles = StyleSheet.create({
   texto: {
     fontSize: 24,
     fontWeight: '600',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#fbe9e7',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalText: {
+    fontSize: 22,
+    fontWeight: '600',
+    marginBottom: 20,
+  },
+  cerrar: {
+    color: '#e0887f',
+    fontWeight: '600',
+    fontSize: 16,
   },
 });
