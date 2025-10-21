@@ -1,56 +1,82 @@
 import Calendario from '@/components/Calendario';
+import VistaDia from '@/components/VistaDia';
 import { Actividad } from '@/data/types';
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function VistaMes({ actividades }: { actividades: Actividad[] }) {
   const [actividadesDia, setActividadesDia] = useState<Actividad[]>([]);
+  const [diaSeleccionado, setDiaSeleccionado] = useState<number | null>(null);
+  const [mesSeleccionado, setMesSeleccionado] = useState<number | null>(null);
+  const [anioSeleccionado, setAnioSeleccionado] = useState<number | null>(null);
 
   const hoy = new Date();
   const mesActual = hoy.getMonth();
   const anioActual = hoy.getFullYear();
 
-  // 🔹 Generar sólo los próximos 3 meses
+  // 🔹 Generar los próximos 3 meses
   const meses = Array.from({ length: 3 }, (_, i) => {
     const nuevoMes = (mesActual + i) % 12;
     const nuevoAnio = anioActual + Math.floor((mesActual + i) / 12);
     return { mes: nuevoMes, anio: nuevoAnio };
   });
 
+  // 📅 Si hay un día seleccionado → mostrar vista del día
+  if (diaSeleccionado !== null && actividadesDia.length > 0) {
+    const fecha = new Date(anioSeleccionado!, mesSeleccionado!, diaSeleccionado);
+
+    return (
+      <View style={styles.vistaDiaContainer}>
+        <TouchableOpacity
+          onPress={() => {
+            setDiaSeleccionado(null);
+            setActividadesDia([]);
+          }}
+          style={styles.botonVolver}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.flecha}>←</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.fecha}>
+          {fecha.toLocaleDateString('es-AR', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+          }).toUpperCase()}
+        </Text>
+
+        <VistaDia
+          actividades={actividadesDia}
+          fecha={fecha}
+        />
+      </View>
+    );
+  }
+
+  // 🗓️ Render del calendario con scroll
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.inner}>
+    <View style={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {meses.map(({ mes, anio }) => (
           <Calendario
             key={`${mes}-${anio}`}
             mes={mes}
             anio={anio}
             actividades={actividades}
-            onSelectDay={(_, acts) => setActividadesDia(acts)}
+            onSelectDay={(dia, acts) => {
+              setDiaSeleccionado(dia);
+              setMesSeleccionado(mes);
+              setAnioSeleccionado(anio);
+              setActividadesDia(acts);
+            }}
           />
         ))}
-
-        {/* Lista de actividades del día seleccionado */}
-        {actividadesDia.length > 0 && (
-          <View style={styles.lista}>
-            <Text style={styles.subtitulo}>🗓️ Actividades del día</Text>
-            {actividadesDia.map((a) => (
-              <View
-                key={a.id}
-                style={[styles.item, { backgroundColor: a.color || '#fff' }]}
-              >
-                <Text style={styles.textTitulo}>{a.titulo}</Text>
-                {a.horaInicio && (
-                  <Text style={styles.textHora}>
-                    {a.horaInicio} - {a.horaFin || '...'}
-                  </Text>
-                )}
-              </View>
-            ))}
-          </View>
-        )}
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -59,40 +85,46 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
   },
-  inner: {
+  scrollContent: {
     alignItems: 'center',
     paddingVertical: 15,
+    paddingBottom: 100, // espacio final para no cortar con el navbar
   },
-  lista: {
-    marginTop: 25,
+  vistaDiaContainer: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    paddingTop: 25,
     alignItems: 'center',
-    paddingBottom: 40,
   },
-  subtitulo: {
+  fecha: {
     fontSize: 18,
     fontWeight: '800',
     color: '#111',
     marginBottom: 10,
   },
-  item: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    marginBottom: 8,
-    width: 290,
-    borderWidth: 1.5,
-    borderColor: '#000',
+  botonVolver: {
+    position: 'absolute',
+    bottom: 85,
+    alignSelf: 'center',
+    backgroundColor: '#f0bdb7ff',
+    borderWidth: 2,
+    borderColor: '#111',
+    borderRadius: 40,
+    width: 56,
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
+    zIndex: 10,
   },
-  textTitulo: {
-    fontSize: 16,
-    fontWeight: '700',
+  flecha: {
+    fontSize: 28,
+    fontWeight: '900',
     color: '#111',
-    textAlign: 'center',
-  },
-  textHora: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#333',
-    textAlign: 'center',
+    top: -2,
   },
 });

@@ -1,9 +1,13 @@
 import { Actividad } from '@/data/types';
+import dayjs from 'dayjs';
+import isoWeek from 'dayjs/plugin/isoWeek';
 import React, { useMemo, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
+dayjs.extend(isoWeek);
+
 interface CalendarioProps {
-  mes: number; // 0–11
+  mes: number;
   anio: number;
   actividades: Actividad[];
   onSelectDay: (dia: number, acts: Actividad[]) => void;
@@ -12,80 +16,75 @@ interface CalendarioProps {
 export default function Calendario({ mes, anio, actividades, onSelectDay }: CalendarioProps) {
   const [diaSeleccionado, setDiaSeleccionado] = useState<number | null>(null);
 
-  const diasEnMes = new Date(anio, mes + 1, 0).getDate();
-  const primerDiaSemana = new Date(anio, mes, 1).getDay(); // 0=Domingo
+  const startOfMonth = dayjs(new Date(anio, mes, 1));
+  const startDate = startOfMonth.startOf('week'); // lunes como inicio
+  const endOfMonth = dayjs(new Date(anio, mes + 1, 0));
+  const endDate = endOfMonth.endOf('week'); // domingo final
 
-  // Agrupar actividades por día (solo las que se muestran en vista mensual)
+  // 🔹 Generar todas las fechas visibles (42 máx)
+  const dias = useMemo(() => {
+    const result: dayjs.Dayjs[] = [];
+    let current = startDate;
+    while (current.isBefore(endDate) || current.isSame(endDate)) {
+      result.push(current);
+      current = current.add(1, 'day');
+    }
+    return result;
+  }, [mes, anio]);
+
+  // 🔹 Mapa de actividades por día (solo las que aplican a este mes)
   const actividadesPorDia = useMemo(() => {
     const mapa: Record<number, Actividad[]> = {};
-    actividades
-      .filter((a) => a.vistaMensual)
-      .forEach((act) => {
-        if (act.diasMes && act.diasMes.length > 0) {
-          act.diasMes.forEach((d) => {
-            if (!mapa[d]) mapa[d] = [];
-            mapa[d].push(act);
-          });
-        }
-      });
+    for (const act of actividades) {
+      if (!act.vistaMensual || !act.diasMes) continue;
+      for (const d of act.diasMes) {
+        if (!mapa[d]) mapa[d] = [];
+        mapa[d].push(act);
+      }
+    }
     return mapa;
   }, [actividades]);
 
-  const diasTotales = Array.from({ length: diasEnMes }, (_, i) => i + 1);
-
-  const nombreMes = new Date(anio, mes).toLocaleString('es-AR', {
-    month: 'long',
-  });
+  const nombreMes = startOfMonth.format('MMMM').toUpperCase();
 
   return (
     <View style={styles.container}>
-      {/* Encabezado del mes */}
-      <Text style={styles.header}>
-        {nombreMes.toUpperCase()} {anio}
-      </Text>
+      <Text style={styles.header}>{`${nombreMes} ${anio}`}</Text>
 
-      {/* Encabezado de días */}
+      {/* Cabecera de días */}
       <View style={styles.weekHeader}>
-        {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((d, i) => (
-          <Text key={i} style={styles.weekDay}>
-            {d}
-          </Text>
+        {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((d) => (
+          <Text key={d} style={styles.weekDay}>{d}</Text>
         ))}
       </View>
 
       {/* Grilla */}
       <View style={styles.grid}>
-        {Array.from({ length: (primerDiaSemana + 6) % 7 }).map((_, i) => (
-          <View key={`empty-${i}`} style={styles.dayCell} />
-        ))}
-
-        {diasTotales.map((dia) => {
-          const acts = actividadesPorDia[dia];
-          const tieneActividades = !!acts;
-          const esSeleccionado = diaSeleccionado === dia;
+        {dias.map((fecha) => {
+          const dia = fecha.date();
+          const esDelMes = fecha.month() === mes;
+          const acts = esDelMes ? actividadesPorDia[dia] : undefined;
+          const tieneAct = !!acts;
+          const esSeleccionado = esDelMes && diaSeleccionado === dia;
 
           return (
             <TouchableOpacity
-              key={dia}
+              key={fecha.toString()}
               onPress={() => {
-                if (tieneActividades) {
+                if (esDelMes && tieneAct) {
                   setDiaSeleccionado(dia);
                   onSelectDay(dia, acts);
                 }
               }}
+              activeOpacity={esDelMes && tieneAct ? 0.8 : 1}
               style={[
                 styles.dayCell,
-                tieneActividades && styles.dayWithEvent,
+                !esDelMes && styles.outsideMonth,
+                tieneAct && styles.dayWithEvent,
                 esSeleccionado && styles.daySelected,
               ]}
-              activeOpacity={tieneActividades ? 0.8 : 1}
             >
-              <Text
-                style={[
-                  styles.dayNumber,
-                  tieneActividades && styles.dayNumberActive,
-                ]}
-              >
+              <Text style={[styles.dayText, !esDelMes && styles.outsideText]}>
                 {dia}
               </Text>
             </TouchableOpacity>
@@ -96,16 +95,18 @@ export default function Calendario({ mes, anio, actividades, onSelectDay }: Cale
   );
 }
 
+const CELL_SIZE = 42;
+
 const styles = StyleSheet.create({
   container: {
     marginBottom: 25,
     borderWidth: 2,
     borderColor: '#000',
     borderRadius: 18,
-    paddingVertical: 12,
-    paddingHorizontal: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
     width: '90%',
-    backgroundColor: 'rgba(255,255,255,0.1)', // transparente con leve brillo
+    backgroundColor: '#fff',
   },
   header: {
     fontSize: 20,
@@ -117,47 +118,46 @@ const styles = StyleSheet.create({
   weekHeader: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   weekDay: {
+    width: CELL_SIZE,
+    textAlign: 'center',
     fontSize: 15,
     fontWeight: '700',
     color: '#111',
-    width: 40,
-    textAlign: 'center',
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
-    paddingHorizontal: 6,
   },
   dayCell: {
-    width: 40,
-    height: 40,
-    margin: 3,
+    width: CELL_SIZE,
+    height: CELL_SIZE,
+    margin: 2,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'transparent',
   },
   dayWithEvent: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderWidth: 2,
+    backgroundColor: 'rgba(183, 240, 199, 0.7)',
   },
   daySelected: {
     backgroundColor: '#b8e8c9',
     borderWidth: 2,
   },
-  dayNumber: {
+  outsideMonth: {
+    backgroundColor: 'rgba(240,240,240,0.6)',
+  },
+  dayText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#111',
   },
-  dayNumberActive: {
-    fontWeight: '800',
-    color: '#000',
+  outsideText: {
+    color: '#999',
   },
 });

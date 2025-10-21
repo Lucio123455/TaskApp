@@ -5,19 +5,41 @@ import CardDia from './CardDia';
 
 interface VistaDiaProps {
   actividades: Actividad[];
+  fecha?: Date; // opcional: fecha específica (usada por VistaMes)
 }
 
-export default function VistaDia({ actividades }: VistaDiaProps) {
-  // Día actual (en minúsculas)
-  const diaSemana = new Date()
+export default function VistaDia({ actividades, fecha }: VistaDiaProps) {
+  // Si se pasa una fecha específica, usamos esa. Si no, usamos la actual.
+  const fechaReferencia = fecha || new Date();
+
+  const diaSemana = fechaReferencia
     .toLocaleDateString('es-AR', { weekday: 'long' })
     .toLowerCase();
 
+  const diaMes = fechaReferencia.getDate();
+
   const tareasDelDia = useMemo(() => {
-    // Filtrar actividades que correspondan al día actual
     const filtradas = actividades.filter(act => {
-      const dias = act.dias.map(d => d.toLowerCase());
-      return dias.includes(diaSemana) || dias.includes('todos');
+      // Si tiene días definidos (semanales)
+      if (act.dias && act.dias.length > 0) {
+        const dias = act.dias.map(d => d.toLowerCase());
+        if (dias.includes(diaSemana) || dias.includes('todos')) return true;
+      }
+
+      // Si tiene días del mes definidos (mensuales)
+      if (act.diasMes && act.diasMes.includes(diaMes)) return true;
+
+      // Si tiene una fecha única (no repetitiva)
+      if (act.fechaInicio) {
+        const fechaAct = new Date(act.fechaInicio);
+        return (
+          fechaAct.getDate() === diaMes &&
+          fechaAct.getMonth() === fechaReferencia.getMonth() &&
+          fechaAct.getFullYear() === fechaReferencia.getFullYear()
+        );
+      }
+
+      return false;
     });
 
     // Ordenar por horaInicio (las que no tienen hora al final)
@@ -29,12 +51,12 @@ export default function VistaDia({ actividades }: VistaDiaProps) {
     });
 
     return ordenadas;
-  }, [actividades, diaSemana]);
+  }, [actividades, diaSemana, diaMes]);
 
   return (
     <View style={{ flex: 1, padding: 12 }}>
       {tareasDelDia.length === 0 ? (
-        <Text>No hay actividades hoy 🎉</Text>
+        <Text>No hay actividades este día 🎉</Text>
       ) : (
         <FlatList
           showsVerticalScrollIndicator={false}
