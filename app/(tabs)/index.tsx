@@ -11,8 +11,8 @@ import { StyleSheet, View } from 'react-native';
 import 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import ConfigScreen from '../../components/config';
 import { actividadesData } from '../../data/actividades';
-import ConfigScreen from './config';
 
 export default function HomeScreen() {
   const [pagina, setPagina] = useState(2); // 2 = principal
