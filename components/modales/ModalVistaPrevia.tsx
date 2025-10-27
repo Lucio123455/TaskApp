@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 interface Nota {
   id: string;
@@ -11,10 +11,32 @@ interface ModalVistaPreviaProps {
   visible: boolean;
   nota?: Nota | null;
   onClose: () => void;
+  onEliminar?: (id: string) => void; // Nueva prop para eliminar
 }
 
-export default function ModalVistaPrevia({ visible, nota, onClose }: ModalVistaPreviaProps) {
+export default function ModalVistaPrevia({ visible, nota, onClose, onEliminar }: ModalVistaPreviaProps) {
   if (!nota) return null;
+
+  const handleEliminar = () => {
+    Alert.alert(
+      'Eliminar nota',
+      `¿Estás seguro de que quieres eliminar "${nota.titulo}"?`,
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => {
+            onEliminar?.(nota.id);
+            onClose(); // Cerrar el modal después de eliminar
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
@@ -31,9 +53,21 @@ export default function ModalVistaPrevia({ visible, nota, onClose }: ModalVistaP
           <Text style={styles.texto}>{nota.contenido || 'Sin contenido.'}</Text>
         </ScrollView>
 
-        <Pressable onPress={onClose} style={styles.botonCerrar}>
-          <Text style={styles.textoCerrar}>Cerrar</Text>
-        </Pressable>
+        <View style={styles.botonesContainer}>
+          <Pressable 
+            onPress={handleEliminar} 
+            style={[styles.boton, styles.botonEliminar]}
+          >
+            <Text style={styles.textoEliminar}>Eliminar</Text>
+          </Pressable>
+          
+          <Pressable 
+            onPress={onClose} 
+            style={[styles.boton, styles.botonCerrar]}
+          >
+            <Text style={styles.textoCerrar}>Cerrar</Text>
+          </Pressable>
+        </View>
       </View>
     </Modal>
   );
@@ -42,7 +76,7 @@ export default function ModalVistaPrevia({ visible, nota, onClose }: ModalVistaP
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#E8F1ED', // fondo de la hoja
+    backgroundColor: '#E8F1ED',
     padding: 24,
     justifyContent: 'flex-start',
   },
@@ -66,6 +100,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     overflow: 'hidden',
     elevation: 3,
+    marginBottom: 16,
   },
   pageContent: {
     padding: 20,
@@ -73,21 +108,39 @@ const styles = StyleSheet.create({
   texto: {
     fontSize: 17,
     color: '#2A2A2A',
-    lineHeight: 28, // renglones
+    lineHeight: 28,
     borderLeftWidth: 4,
     borderColor: '#E0E0E0',
     paddingLeft: 12,
   },
-  botonCerrar: {
-    marginTop: 20,
-    backgroundColor: '#37C997',
+  botonesContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  boton: {
+    flex: 1,
     borderRadius: 10,
     paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  botonEliminar: {
+    backgroundColor: '#FFF5F5',
+    borderWidth: 2,
+    borderColor: '#FF3B30',
+  },
+  botonCerrar: {
+    backgroundColor: '#37C997',
+  },
+  textoEliminar: {
+    color: '#FF3B30',
+    fontWeight: '700',
+    fontSize: 16,
   },
   textoCerrar: {
     color: '#fff',
     fontWeight: '700',
     fontSize: 16,
-    textAlign: 'center',
   },
 });

@@ -6,7 +6,7 @@ import ListaDeNotas from '@/components/secciones/ListaDeNotas';
 import VistaDia from '@/components/secciones/Vistas/VistaDia';
 import VistaMes from '@/components/secciones/Vistas/VistaMes';
 import VistaSemanal from '@/components/secciones/Vistas/VistaSemanal';
-import { guardarNota, obtenerNotas } from '@/data/notas';
+import { eliminarNota, guardarNota, obtenerNotas } from '@/data/notas';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import 'react-native-gesture-handler';
@@ -51,6 +51,26 @@ export default function HomeScreen() {
     await guardarNota(nota.id, nota.titulo, nota.contenido);
     const actualizadas = await obtenerNotas();
     setNotas(actualizadas);
+  };
+
+  const handleNotaEliminada = async (id: string) => {
+    try {
+      // Eliminar de la base de datos
+      await eliminarNota(id);
+      
+      // Actualizar el estado local inmediatamente para mejor UX
+      setNotas(prevNotas => prevNotas.filter(nota => nota.id !== id));
+      
+      // Cerrar modales si estaban abiertos
+      setModalVistaVisible(false);
+      setModalNotaVisible(false);
+      setNotaSeleccionada(null);
+      
+    } catch (error) {
+      console.error('Error eliminando nota:', error);
+      // En caso de error, recargar las notas para restaurar el estado
+      await obtenerNotas();
+    }
   };
 
   return (
@@ -129,6 +149,7 @@ export default function HomeScreen() {
           setModalVistaVisible(false);
           setNotaSeleccionada(null);
         }}
+        onEliminar={handleNotaEliminada} // Agrega esta prop
       />
     </SafeAreaView>
   );
