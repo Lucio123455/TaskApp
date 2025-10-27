@@ -1,14 +1,13 @@
 import { Actividad } from '@/data/types';
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { FlatList, Text, View } from 'react-native';
-import CardDia from './CardDia';
-
+import CardDia from '../../Cards/CardDia';
 interface VistaDiaProps {
   actividades: Actividad[];
   fecha?: Date; // opcional: fecha específica (usada por VistaMes)
 }
 
-export default function VistaDia({ actividades, fecha }: VistaDiaProps) {
+export default React.memo(function VistaDia({ actividades, fecha }: VistaDiaProps) {
   // Si se pasa una fecha específica, usamos esa. Si no, usamos la actual.
   const fechaReferencia = fecha || new Date();
 
@@ -67,5 +66,6 @@ export default function VistaDia({ actividades, fecha }: VistaDiaProps) {
       )}
     </View>
   );
-}
+});
+
 

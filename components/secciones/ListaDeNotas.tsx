@@ -1,6 +1,6 @@
 import React from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
-import NotaItem from './NotaItem';
+import NotaItem from '../Cards/NotaItem';
 
 interface Nota {
   id: string;

@@ -1,13 +1,14 @@
 import { Actividad } from '@/data/types';
 import React, { useMemo } from 'react';
 import { FlatList, View } from 'react-native';
-import CardSemana from './CardSemana';
+import CardSemana from '../../Cards/CardSemana';
 
 interface VistaSemanalProps {
   actividades: Actividad[];
 }
 
-export default function VistaSemanal({ actividades }: VistaSemanalProps) {
+export default React.memo(function VistaSemanal({ actividades }: VistaSemanalProps) {
+  // 🔹 Calcular los próximos 7 días solo una vez (memoizado)
   const proximosDias = useMemo(() => {
     const hoy = new Date();
     const nombres = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
@@ -18,6 +19,7 @@ export default function VistaSemanal({ actividades }: VistaSemanalProps) {
       const nombre = nombres[f.getDay()];
       const numero = f.getDate();
       const mes = f.getMonth() + 1;
+
       return {
         nombre,
         numeroDia: numero,
@@ -26,27 +28,29 @@ export default function VistaSemanal({ actividades }: VistaSemanalProps) {
     });
   }, []);
 
-  // Para cada día, juntamos TODAS las actividades que aplican
-  const datosSemana = proximosDias.map((dia) => {
-    const acts = actividades.filter((a) => {
-      if (!a.vistaSemanal) return false;
+  // 🔁 Calcular actividades por día (memoizado)
+  const datosSemana = useMemo(() => {
+    return proximosDias.map((dia) => {
+      const acts = actividades.filter((a) => {
+        if (!a.vistaSemanal) return false;
 
-      const byNombre = (a.dias ?? [])
-        .map((d) => d.toLowerCase())
-        .some((d) => d === dia.nombre.toLowerCase() || d === 'todos');
+        const byNombre = (a.dias ?? [])
+          .map((d) => d.toLowerCase())
+          .some((d) => d === dia.nombre.toLowerCase() || d === 'todos');
 
-      const byDiaMes = (a.diasMes ?? []).includes(dia.numeroDia);
+        const byDiaMes = (a.diasMes ?? []).includes(dia.numeroDia);
 
-      return byNombre || byDiaMes;
+        return byNombre || byDiaMes;
+      });
+
+      return { ...dia, actividades: acts };
     });
-
-    return { ...dia, actividades: acts };
-  });
+  }, [actividades, proximosDias]);
 
   return (
     <View style={{ flex: 1, padding: 12 }}>
       <FlatList
-      showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
         data={datosSemana}
         keyExtractor={(_, i) => String(i)}
         renderItem={({ item }) => (
@@ -59,4 +63,4 @@ export default function VistaSemanal({ actividades }: VistaSemanalProps) {
       />
     </View>
   );
-}
+});

@@ -1,17 +1,17 @@
-import ListaDeNotas from '@/components/ListaDeNotas';
-import ModalNota from '@/components/ModalNota';
-import ModalTarea from '@/components/ModalTarea';
-import ModalVistaPrevia from '@/components/ModalVistaPrevia';
+import ModalNota from '@/components/modales/ModalNota';
+import ModalTarea from '@/components/modales/ModalTarea';
+import ModalVistaPrevia from '@/components/modales/ModalVistaPrevia';
 import Navbar from '@/components/Navbar';
-import VistaDia from '@/components/VistaDia';
-import VistaMes from '@/components/VistaMes';
-import VistaSemanal from '@/components/VistaSemanal';
+import ListaDeNotas from '@/components/secciones/ListaDeNotas';
+import VistaDia from '@/components/secciones/Vistas/VistaDia';
+import VistaMes from '@/components/secciones/Vistas/VistaMes';
+import VistaSemanal from '@/components/secciones/Vistas/VistaSemanal';
 import { useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import ConfigScreen from '../../components/config';
+import ConfigScreen from '../../components/secciones/config';
 import { actividadesData } from '../../data/actividades';
 
 export default function HomeScreen() {

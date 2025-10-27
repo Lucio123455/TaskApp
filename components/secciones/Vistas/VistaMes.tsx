@@ -1,25 +1,39 @@
-import Calendario from '@/components/Calendario';
-import VistaDia from '@/components/VistaDia';
+import Calendario from '@/components/Cards/Calendario';
+import VistaDia from '@/components/secciones/Vistas/VistaDia';
 import { Actividad } from '@/data/types';
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function VistaMes({ actividades }: { actividades: Actividad[] }) {
+interface VistaMesProps {
+  actividades: Actividad[];
+}
+
+export default React.memo(function VistaMes({ actividades }: VistaMesProps) {
   const [actividadesDia, setActividadesDia] = useState<Actividad[]>([]);
   const [diaSeleccionado, setDiaSeleccionado] = useState<number | null>(null);
   const [mesSeleccionado, setMesSeleccionado] = useState<number | null>(null);
   const [anioSeleccionado, setAnioSeleccionado] = useState<number | null>(null);
 
-  const hoy = new Date();
+  const hoy = useMemo(() => new Date(), []);
   const mesActual = hoy.getMonth();
   const anioActual = hoy.getFullYear();
 
-  // 🔹 Generar los próximos 3 meses
-  const meses = Array.from({ length: 3 }, (_, i) => {
-    const nuevoMes = (mesActual + i) % 12;
-    const nuevoAnio = anioActual + Math.floor((mesActual + i) / 12);
-    return { mes: nuevoMes, anio: nuevoAnio };
-  });
+  // 🔹 Generar los próximos 3 meses (memoizado para evitar cálculos cada render)
+  const meses = useMemo(() => {
+    return Array.from({ length: 3 }, (_, i) => {
+      const nuevoMes = (mesActual + i) % 12;
+      const nuevoAnio = anioActual + Math.floor((mesActual + i) / 12);
+      return { mes: nuevoMes, anio: nuevoAnio };
+    });
+  }, [mesActual, anioActual]);
+
+  // 🔁 Manejar selección de día (useCallback para mantener referencia estable)
+  const handleSelectDay = useCallback((dia: number, acts: Actividad[], mes: number, anio: number) => {
+    setDiaSeleccionado(dia);
+    setMesSeleccionado(mes);
+    setAnioSeleccionado(anio);
+    setActividadesDia(acts);
+  }, []);
 
   // 📅 Si hay un día seleccionado → mostrar vista del día
   if (diaSeleccionado !== null && actividadesDia.length > 0) {
@@ -46,10 +60,7 @@ export default function VistaMes({ actividades }: { actividades: Actividad[] }) 
           }).toUpperCase()}
         </Text>
 
-        <VistaDia
-          actividades={actividadesDia}
-          fecha={fecha}
-        />
+        <VistaDia actividades={actividadesDia} fecha={fecha} />
       </View>
     );
   }
@@ -67,18 +78,13 @@ export default function VistaMes({ actividades }: { actividades: Actividad[] }) 
             mes={mes}
             anio={anio}
             actividades={actividades}
-            onSelectDay={(dia, acts) => {
-              setDiaSeleccionado(dia);
-              setMesSeleccionado(mes);
-              setAnioSeleccionado(anio);
-              setActividadesDia(acts);
-            }}
+            onSelectDay={(dia, acts) => handleSelectDay(dia, acts, mes, anio)}
           />
         ))}
       </ScrollView>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {
