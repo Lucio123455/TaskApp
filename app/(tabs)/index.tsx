@@ -6,7 +6,8 @@ import ListaDeNotas from '@/components/secciones/ListaDeNotas';
 import VistaDia from '@/components/secciones/Vistas/VistaDia';
 import VistaMes from '@/components/secciones/Vistas/VistaMes';
 import VistaSemanal from '@/components/secciones/Vistas/VistaSemanal';
-import { useRef, useState } from 'react';
+import { guardarNota, obtenerNotas } from '@/data/notas';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
@@ -24,6 +25,13 @@ export default function HomeScreen() {
   const pagerRef = useRef<PagerView>(null);
   const [modalVistaVisible, setModalVistaVisible] = useState(false);
 
+  useEffect(() => {
+    (async () => {
+      const data = await obtenerNotas();
+      setNotas(data);
+    })();
+  }, []);
+
   // 🔁 Manejo de navegación
   const handleChangePage = (index: number | 'modal') => {
     if (index === 'modal') {
@@ -39,16 +47,10 @@ export default function HomeScreen() {
   };
 
   // 💾 Guardar nota (nueva o editada)
-  const handleSaveNota = (nota: any) => {
-    if (notaSeleccionada) {
-      // editar existente
-      setNotas(prev =>
-        prev.map(n => (n.id === nota.id ? nota : n))
-      );
-    } else {
-      // nueva
-      setNotas(prev => [...prev, nota]);
-    }
+  const handleSaveNota = async (nota: any) => {
+    await guardarNota(nota.id, nota.titulo, nota.contenido);
+    const actualizadas = await obtenerNotas();
+    setNotas(actualizadas);
   };
 
   return (
