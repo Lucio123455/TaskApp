@@ -1,5 +1,5 @@
-import React from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 interface Nota {
   id: string;
@@ -11,65 +11,102 @@ interface ModalVistaPreviaProps {
   visible: boolean;
   nota?: Nota | null;
   onClose: () => void;
-  onEliminar?: (id: string) => void; // Nueva prop para eliminar
+  onEliminar?: (id: string) => void;
 }
 
 export default function ModalVistaPrevia({ visible, nota, onClose, onEliminar }: ModalVistaPreviaProps) {
-  if (!nota) return null;
+  const [modalConfirmacionVisible, setModalConfirmacionVisible] = useState(false);
 
-  const handleEliminar = () => {
-    Alert.alert(
-      'Eliminar nota',
-      `¿Estás seguro de que quieres eliminar "${nota.titulo}"?`,
-      [
-        {
-          text: 'Cancelar',
-          style: 'cancel',
-        },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: () => {
-            onEliminar?.(nota.id);
-            onClose(); // Cerrar el modal después de eliminar
-          },
-        },
-      ]
-    );
+  const handleEliminarConfirmado = () => {
+    onEliminar?.(nota!.id);
+    onClose();
+    setModalConfirmacionVisible(false);
   };
 
+  const abrirConfirmacion = () => {
+    setModalConfirmacionVisible(true);
+  };
+
+  const cerrarConfirmacion = () => {
+    setModalConfirmacionVisible(false);
+  };
+
+  if (!nota) return null;
+
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>{nota.titulo}</Text>
-        </View>
+    <>
+      {/* Modal principal de vista previa */}
+      <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <Text style={styles.title}>{nota.titulo}</Text>
+          </View>
 
-        <ScrollView
-          style={styles.page}
-          contentContainerStyle={styles.pageContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <Text style={styles.texto}>{nota.contenido || 'Sin contenido.'}</Text>
-        </ScrollView>
+          <ScrollView
+            style={styles.page}
+            contentContainerStyle={styles.pageContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <Text style={styles.texto}>{nota.contenido || 'Sin contenido.'}</Text>
+          </ScrollView>
 
-        <View style={styles.botonesContainer}>
-          <Pressable 
-            onPress={handleEliminar} 
-            style={[styles.boton, styles.botonEliminar]}
-          >
-            <Text style={styles.textoEliminar}>Eliminar</Text>
-          </Pressable>
-          
-          <Pressable 
-            onPress={onClose} 
-            style={[styles.boton, styles.botonCerrar]}
-          >
-            <Text style={styles.textoCerrar}>Cerrar</Text>
-          </Pressable>
+          <View style={styles.botonesContainer}>
+            <Pressable 
+              onPress={abrirConfirmacion} 
+              style={[styles.boton, styles.botonEliminar]}
+            >
+              <Text style={styles.textoEliminar}>Eliminar</Text>
+            </Pressable>
+            
+            <Pressable 
+              onPress={onClose} 
+              style={[styles.boton, styles.botonCerrar]}
+            >
+              <Text style={styles.textoCerrar}>Cerrar</Text>
+            </Pressable>
+          </View>
         </View>
-      </View>
-    </Modal>
+      </Modal>
+
+      {/* Modal de confirmación personalizado */}
+      <Modal
+        visible={modalConfirmacionVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={cerrarConfirmacion}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalConfirmacion}>
+            {/* Icono de advertencia */}
+            <View style={styles.iconoContainer}>
+              <Text style={styles.icono}>🗑️</Text>
+            </View>
+
+            {/* Título */}
+            <Text style={styles.confirmacionTitulo}>
+              ¿Eliminar nota?
+            </Text>
+
+            {/* Botones */}
+            <View style={styles.confirmacionBotones}>
+              <Pressable 
+                onPress={cerrarConfirmacion}
+                style={[styles.confirmacionBoton, styles.botonCancelar]}
+              >
+                <Text style={styles.textoCancelar}>Cancelar</Text>
+              </Pressable>
+              
+              <Pressable 
+                onPress={handleEliminarConfirmado}
+                style={[styles.confirmacionBoton, styles.botonConfirmar]}
+              >
+                <Text style={styles.textoConfirmar}>Sí, Eliminar</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 }
 
@@ -140,6 +177,93 @@ const styles = StyleSheet.create({
   },
   textoCerrar: {
     color: '#fff',
+    fontWeight: '700',
+    fontSize: 16,
+  },
+
+  // Estilos para el modal de confirmación personalizado
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalConfirmacion: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  iconoContainer: {
+    marginBottom: 16,
+  },
+  icono: {
+    fontSize: 48,
+  },
+  confirmacionTitulo: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#1C1C1C',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  confirmacionMensaje: {
+    fontSize: 16,
+    color: '#5E5E5E',
+    textAlign: 'center',
+    marginBottom: 8,
+    lineHeight: 22,
+  },
+  notaNombre: {
+    fontWeight: '700',
+    color: '#1C1C1C',
+  },
+  confirmacionAdvertencia: {
+    fontSize: 14,
+    color: '#FF3B30',
+    textAlign: 'center',
+    fontWeight: '600',
+    marginBottom: 24,
+  },
+  confirmacionBotones: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    width: '100%',
+  },
+  confirmacionBoton: {
+    flex: 1,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  botonCancelar: {
+    backgroundColor: '#F8F9FA',
+    borderWidth: 2,
+    borderColor: '#E9ECEF',
+  },
+  botonConfirmar: {
+    backgroundColor: '#FF3B30',
+  },
+  textoCancelar: {
+    color: '#5E5E5E',
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  textoConfirmar: {
+    color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 16,
   },

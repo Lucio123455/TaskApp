@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
-    Modal,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 
 interface Tarea {
@@ -181,7 +181,7 @@ export default function ModalTarea({ visible, tarea, onClose, onSave }: ModalTar
                 >
                   <Text style={[styles.optionText, submodo === m && styles.optionTextActive]}>
                     {m === 'dias'
-                      ? 'Días de la semana'
+                      ? 'Días'
                       : m === 'relativo'
                       ? 'Relativo'
                       : 'Por números'}
