@@ -3,6 +3,7 @@ import { Audio } from 'expo-av';
 import React, { useRef, useState } from 'react';
 import {
   Animated,
+  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -20,7 +21,7 @@ export default function CardDia({ actividad, onToggleComplete }: CardDiaProps) {
 
   const playSound = async () => {
     const { sound } = await Audio.Sound.createAsync(
-      require('@/assets/sounds/lapiz.mp3') // ✏️ sonido de lápiz o tachado
+      require('@/assets/sounds/lapiz.mp3')
     );
     await sound.playAsync();
   };
@@ -36,9 +37,14 @@ export default function CardDia({ actividad, onToggleComplete }: CardDiaProps) {
       useNativeDriver: false,
     }).start();
 
-    // 🔊 Reproduce el sonido solo al completar
     if (newState) await playSound();
   };
+
+  // Función temporal solo para ver el botón
+  const handleEdit = () => {
+    console.log('Botón de editar presionado - Solo para ver el diseño');
+  };
+
   // Interpolaciones para efectos suaves
   const scale = anim.interpolate({
     inputRange: [0, 1],
@@ -62,7 +68,7 @@ export default function CardDia({ actividad, onToggleComplete }: CardDiaProps) {
         { transform: [{ scale }] },
       ]}
     >
-      <Pressable onPress={toggleComplete}>
+      <Pressable onPress={toggleComplete} style={styles.mainPressable}>
         <Animated.View
           style={[
             styles.card,
@@ -91,6 +97,19 @@ export default function CardDia({ actividad, onToggleComplete }: CardDiaProps) {
           >
             {actividad.titulo}
           </Text>
+
+          {/* ✏️ Botón de editar - EXACTAMENTE IGUAL AL NOTAITEM */}
+          <Pressable
+            onPress={handleEdit}
+            hitSlop={10}
+            style={({ pressed }) => [styles.editButton, pressed && styles.editPressed]}
+          >
+            <Image
+              source={require('@/assets/images/lapiz.png')}
+              style={styles.iconEdit}
+              resizeMode="contain"
+            />
+          </Pressable>
         </Animated.View>
       </Pressable>
     </Animated.View>
@@ -101,6 +120,10 @@ const styles = StyleSheet.create({
   wrapper: {
     alignItems: 'center',
     marginBottom: 20,
+  },
+  mainPressable: {
+    width: '100%',
+    alignItems: 'center',
   },
   card: {
     flexDirection: 'row',
@@ -117,6 +140,7 @@ const styles = StyleSheet.create({
   },
   horaContainer: {
     alignItems: 'flex-start',
+    minWidth: 60,
   },
   hora: {
     fontSize: 18,
@@ -134,11 +158,23 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '800',
     color: '#111',
-    marginLeft: 10,
+    marginHorizontal: 10,
     letterSpacing: 0.5,
   },
   tituloCompletado: {
     textDecorationLine: 'line-through',
     opacity: 0.4,
+  },
+  // 🎯 ESTILOS EXACTAMENTE IGUALES AL NOTAITEM
+  editButton: {
+    padding: 6,
+    borderRadius: 50,
+  },
+  editPressed: {
+    transform: [{ scale: 0.95 }],
+  },
+  iconEdit: {
+    width: 34,
+    height: 34,
   },
 });

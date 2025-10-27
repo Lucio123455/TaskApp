@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 export default function ConfigScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>⚙️ Estas en Configuración</Text>
+      <Text style={styles.title}>⚙️  en Configuración</Text>
       <Text style={styles.subtitle}>Próximamente podrás ajustar tus preferencias acá.</Text>
     </View>
   );
