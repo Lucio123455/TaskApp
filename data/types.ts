@@ -1,13 +1,18 @@
-// en VistaDia.tsx o un archivo types.ts
+// En @/data/types.ts
 export interface Actividad {
   id: string;
-  tipo: 'tarea' | 'recordatorio' | 'reunion';
   titulo: string;
-  descripcion: string;
-  dias: string[];
+  descripcion?: string;
   fechaInicio: string | null;
   horaInicio: string | null;
   horaFin: string | null;
-  categoria: string;
-  repeticion: 'ninguna' | 'diaria' | 'semanal' | 'mensual' | 'anual';
+  repeticion: 'una_vez' | 'diaria' | 'semanal' | 'mensual' | 'anual' | 'personalizada';
+  reglaRepeticion: string | null;
+  semanaDelMes: number | null;
+  diaDeSemana: string | null;
+  color: string;
+  vistaDia: boolean;
+  vistaSemanal: boolean;
+  vistaMensual: boolean;
+  completada: boolean;
 }
