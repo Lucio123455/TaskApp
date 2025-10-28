@@ -1,3 +1,4 @@
+import { Actividad } from '@/data/types';
 import React, { useEffect, useState } from 'react';
 import {
   Modal,
@@ -9,29 +10,11 @@ import {
   View,
 } from 'react-native';
 
-interface Tarea {
-  id?: string;
-  titulo: string;
-  descripcion?: string;
-  fechaInicio: string | null;
-  horaInicio: string | null;
-  horaFin: string | null;
-  repeticion: 'una_vez' | 'diaria' | 'semanal' | 'mensual' | 'anual' | 'personalizada';
-  reglaRepeticion: string | null;
-  semanaDelMes: number | null;
-  diaDeSemana: string | null;
-  color: string;
-  vistaDia: boolean;
-  vistaSemanal: boolean;
-  vistaMensual: boolean;
-  completada: boolean;
-}
-
 interface ModalTareaProps {
   visible: boolean;
-  tarea?: Tarea | null;
+  tarea?: Actividad | null;
   onClose: () => void;
-  onSave: (t: Tarea) => void;
+  onSave: (t: Actividad) => void;
 }
 
 export default function ModalTarea({ visible, tarea, onClose, onSave }: ModalTareaProps) {
@@ -120,7 +103,7 @@ export default function ModalTarea({ visible, tarea, onClose, onSave }: ModalTar
 
   // 💾 Guardar datos
   const handleGuardar = () => {
-    const t: Tarea = {
+    const t: Actividad = {
       id: tarea?.id || Date.now().toString(),
       titulo: titulo.trim() || 'Sin título',
       descripcion: descripcion.trim() || '',
@@ -224,10 +207,10 @@ export default function ModalTarea({ visible, tarea, onClose, onSave }: ModalTar
                 >
                   <Text style={[styles.optionText, submodo === m && styles.optionTextActive]}>
                     {m === 'dias'
-                      ? 'Por días'
+                      ? 'Días'
                       : m === 'relativo'
-                      ? 'Relativa (segundo lunes, etc.)'
-                      : 'Por números'}
+                      ? 'Relativa'
+                      : 'Números'}
                   </Text>
                 </Pressable>
               ))}
