@@ -2,74 +2,84 @@ import ModalNota from '@/components/modales/ModalNota';
 import ModalTarea from '@/components/modales/ModalTarea';
 import ModalVistaPrevia from '@/components/modales/ModalVistaPrevia';
 import Navbar from '@/components/Navbar';
+import ConfigScreen from '@/components/secciones/config';
 import ListaDeNotas from '@/components/secciones/ListaDeNotas';
 import VistaDia from '@/components/secciones/Vistas/VistaDia';
 import VistaMes from '@/components/secciones/Vistas/VistaMes';
 import VistaSemanal from '@/components/secciones/Vistas/VistaSemanal';
+
 import { eliminarNota, guardarNota, obtenerNotas } from '@/data/notas';
+import { guardarTarea, obtenerTareas } from '@/data/tareas';
+
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import 'react-native-gesture-handler';
 import PagerView from 'react-native-pager-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import ConfigScreen from '../../components/secciones/config';
-import { actividadesData } from '../../data/actividades';
 
 export default function HomeScreen() {
-  const [pagina, setPagina] = useState(2); // 2 = principal
+  // 🌐 Estados
+  const [pagina, setPagina] = useState(2);
+  const pagerRef = useRef<PagerView>(null);
   const [modalTareaVisible, setModalTareaVisible] = useState(false);
   const [modalNotaVisible, setModalNotaVisible] = useState(false);
-  const [notaSeleccionada, setNotaSeleccionada] = useState(null);
-  const [notas, setNotas] = useState<any[]>([]);
-  const [actividades_lista] = useState<any[]>(actividadesData);
-  const pagerRef = useRef<PagerView>(null);
   const [modalVistaVisible, setModalVistaVisible] = useState(false);
 
+  const [notaSeleccionada, setNotaSeleccionada] = useState<any | null>(null);
+  const [notas, setNotas] = useState<any[]>([]);
+  const [tareas, setTareas] = useState<any[]>([]);
+
+  // 🧭 Cargar datos al iniciar
   useEffect(() => {
     (async () => {
-      const data = await obtenerNotas();
-      setNotas(data);
+      const [dataNotas, dataTareas] = await Promise.all([
+        obtenerNotas(),
+        obtenerTareas(),
+      ]);
+      setNotas(dataNotas);
+      setTareas(dataTareas);
     })();
   }, []);
 
-  // 🔁 Manejo de navegación
-  const handleChangePage = (index: number | 'modal') => {
-    if (index === 'modal') {
-      if (pagina === 1) {
-        setNotaSeleccionada(null); // nueva nota
-        setModalNotaVisible(true);
-      } else {
-        setModalTareaVisible(true); // crear tarea
-      }
-    } else {
-      pagerRef.current?.setPage(index);
-    }
-  };
-
-  // 💾 Guardar nota (nueva o editada)
+  // 💾 Guardar nota
   const handleSaveNota = async (nota: any) => {
     await guardarNota(nota.id, nota.titulo, nota.contenido);
     const actualizadas = await obtenerNotas();
     setNotas(actualizadas);
   };
 
+  // 💾 Guardar tarea
+  const handleSaveTarea = async (tarea: any) => {
+    await guardarTarea(tarea);
+    const actualizadas = await obtenerTareas();
+    setTareas(actualizadas);
+  };
+
+  // 🗑️ Eliminar nota
   const handleNotaEliminada = async (id: string) => {
     try {
-      // Eliminar de la base de datos
       await eliminarNota(id);
-      
-      // Actualizar el estado local inmediatamente para mejor UX
-      setNotas(prevNotas => prevNotas.filter(nota => nota.id !== id));
-      
-      // Cerrar modales si estaban abiertos
+      setNotas(prev => prev.filter(n => n.id !== id));
       setModalVistaVisible(false);
       setModalNotaVisible(false);
       setNotaSeleccionada(null);
-      
     } catch (error) {
       console.error('Error eliminando nota:', error);
-      // En caso de error, recargar las notas para restaurar el estado
-      await obtenerNotas();
+      const actualizadas = await obtenerNotas();
+      setNotas(actualizadas);
+    }
+  };
+
+  // 🔄 Cambio de página o apertura de modal
+  const handleChangePage = (index: number | 'modal') => {
+    if (index === 'modal') {
+      if (pagina === 1) {
+        setNotaSeleccionada(null);
+        setModalNotaVisible(true);
+      } else {
+        setModalTareaVisible(true);
+      }
+    } else {
+      pagerRef.current?.setPage(index);
     }
   };
 
@@ -86,52 +96,41 @@ export default function HomeScreen() {
           <ConfigScreen />
         </View>
 
-        {/* 🗒️ Lista de notas */}
+        {/* 🗒️ Notas */}
         <View key="1" style={[styles.pagina, styles.colorFondo]}>
           <ListaDeNotas
             notas={notas}
-            onPreview={(nota: any) => {
+            onPreview={nota => {
               setNotaSeleccionada(nota);
               setModalVistaVisible(true);
             }}
-            onEdit={(nota: any) => {
+            onEdit={nota => {
               setNotaSeleccionada(nota);
               setModalNotaVisible(true);
             }}
           />
         </View>
 
-        {/* 📆 Principal */}
+        {/* 📆 Día */}
         <View key="2" style={[styles.pagina, styles.colorFondo]}>
-          <VistaDia actividades={actividades_lista} />
+          <VistaDia actividades={tareas} />
         </View>
 
         {/* 📅 Semana */}
         <View key="3" style={[styles.pagina, styles.colorFondo]}>
-          <VistaSemanal actividades={actividades_lista} />
+          <VistaSemanal actividades={tareas} />
         </View>
 
         {/* 🗓️ Mes */}
         <View key="4" style={[styles.pagina, styles.colorFondo]}>
-          <VistaMes actividades={actividades_lista} />
+          <VistaMes actividades={tareas} />
         </View>
       </PagerView>
 
       {/* 🔘 Navbar */}
       <Navbar currentPage={pagina} onChangePage={handleChangePage} />
 
-      {/* ✅ Modal de crear tarea */}
-      <ModalTarea
-        visible={modalTareaVisible}
-        onClose={() => setModalTareaVisible(false)}
-        onSave={(nuevaTarea) => {
-          console.log('Tarea guardada:', nuevaTarea);
-          setModalTareaVisible(false);
-        }}
-      />
-
-
-      {/* 📝 Modal de nota (crear o editar) */}
+      {/* 📝 Modal Nota */}
       <ModalNota
         visible={modalNotaVisible}
         nota={notaSeleccionada}
@@ -142,6 +141,14 @@ export default function HomeScreen() {
         onSave={handleSaveNota}
       />
 
+      {/* ✅ Modal Tarea */}
+      <ModalTarea
+        visible={modalTareaVisible}
+        onClose={() => setModalTareaVisible(false)}
+        onSave={handleSaveTarea}
+      />
+
+      {/* 🔍 Vista previa */}
       <ModalVistaPrevia
         visible={modalVistaVisible}
         nota={notaSeleccionada}
@@ -149,7 +156,7 @@ export default function HomeScreen() {
           setModalVistaVisible(false);
           setNotaSeleccionada(null);
         }}
-        onEliminar={handleNotaEliminada} // Agrega esta prop
+        onEliminar={handleNotaEliminada}
       />
     </SafeAreaView>
   );

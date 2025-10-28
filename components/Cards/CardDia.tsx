@@ -13,9 +13,10 @@ import {
 interface CardDiaProps {
   actividad: Actividad;
   onToggleComplete?: (actividad: Actividad, completada: boolean) => void;
+  onEdit?: (actividad: Actividad) => void; // 🔥 AGREGAR ESTA LÍNEA
 }
 
-export default function CardDia({ actividad, onToggleComplete }: CardDiaProps) {
+export default function CardDia({ actividad, onToggleComplete, onEdit }: CardDiaProps) {
   const [completada, setCompletada] = useState(actividad.completada || false);
   const anim = useRef(new Animated.Value(0)).current;
 
@@ -40,9 +41,9 @@ export default function CardDia({ actividad, onToggleComplete }: CardDiaProps) {
     if (newState) await playSound();
   };
 
-  // Función temporal solo para ver el botón
   const handleEdit = () => {
     console.log('Botón de editar presionado - Solo para ver el diseño');
+    onEdit?.(actividad); // 🔥 LLAMAR A LA PROP onEdit
   };
 
   // Interpolaciones para efectos suaves

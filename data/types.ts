@@ -1,19 +1,18 @@
+// En @/data/types.ts
 export interface Actividad {
   id: string;
   titulo: string;
-  dias: string[];
-  diasMes?: number[];
+  descripcion?: string;
   fechaInicio: string | null;
   horaInicio: string | null;
   horaFin: string | null;
-  repeticion: 'ninguna' | 'diaria' | 'semanal' | 'mensual' | 'anual';
-  color?: string;
-
-  // nuevas propiedades de visibilidad
+  repeticion: 'una_vez' | 'diaria' | 'semanal' | 'mensual' | 'anual' | 'personalizada';
+  reglaRepeticion: string | null;
+  semanaDelMes: number | null;
+  diaDeSemana: string | null;
+  color: string;
   vistaDia: boolean;
   vistaSemanal: boolean;
   vistaMensual: boolean;
-  completada?: boolean;
+  completada: boolean;
 }
-
-

@@ -12,16 +12,19 @@ import {
 interface Tarea {
   id?: string;
   titulo: string;
-  dias: string[] | null;
-  diasMes: number[] | null;
-  relativo: { semana: number; dia: string } | null;
+  descripcion?: string;
   fechaInicio: string | null;
-  horaInicio?: string | null;
-  horaFin?: string | null;
+  horaInicio: string | null;
+  horaFin: string | null;
+  repeticion: 'una_vez' | 'diaria' | 'semanal' | 'mensual' | 'anual' | 'personalizada';
+  reglaRepeticion: string | null;
+  semanaDelMes: number | null;
+  diaDeSemana: string | null;
   color: string;
   vistaDia: boolean;
   vistaSemanal: boolean;
   vistaMensual: boolean;
+  completada: boolean;
 }
 
 interface ModalTareaProps {
@@ -36,6 +39,7 @@ export default function ModalTarea({ visible, tarea, onClose, onSave }: ModalTar
   const [submodo, setSubmodo] = useState<'dias' | 'relativo' | 'numeros'>('dias');
 
   const [titulo, setTitulo] = useState('');
+  const [descripcion, setDescripcion] = useState('');
   const [fecha, setFecha] = useState('');
   const [dias, setDias] = useState<string[]>([]);
   const [diasMes, setDiasMes] = useState<number[]>([]);
@@ -58,14 +62,13 @@ export default function ModalTarea({ visible, tarea, onClose, onSave }: ModalTar
     { label: 'Último', value: -1 },
   ];
 
+  // 🧠 Al abrir el modal, precargar datos si hay tarea
   useEffect(() => {
     if (tarea) {
       setTitulo(tarea.titulo);
-      setModoAlta(tarea.fechaInicio ? 'unica' : 'repetitiva');
+      setDescripcion(tarea.descripcion || '');
+      setModoAlta(tarea.repeticion === 'una_vez' ? 'unica' : 'repetitiva');
       setFecha(tarea.fechaInicio || '');
-      setDias(tarea.dias || []);
-      setDiasMes(tarea.diasMes || []);
-      setRelativo(tarea.relativo || null);
       setHoraInicio(tarea.horaInicio || '');
       setHoraFin(tarea.horaFin || '');
       setColor(tarea.color);
@@ -74,8 +77,21 @@ export default function ModalTarea({ visible, tarea, onClose, onSave }: ModalTar
         vistaSemanal: tarea.vistaSemanal,
         vistaMensual: tarea.vistaMensual,
       });
+
+      // Si tiene una regla de repetición relativa
+      if (tarea.reglaRepeticion === 'segundo_lunes_mes') {
+        setSubmodo('relativo');
+        setRelativo({ semana: 2, dia: 'lunes' });
+      } else if (tarea.semanaDelMes && tarea.diaDeSemana) {
+        setSubmodo('relativo');
+        setRelativo({ semana: tarea.semanaDelMes, dia: tarea.diaDeSemana });
+      } else {
+        setSubmodo('dias');
+      }
     } else {
+      // Reset si es nueva tarea
       setTitulo('');
+      setDescripcion('');
       setModoAlta('unica');
       setSubmodo('dias');
       setFecha('');
@@ -89,6 +105,7 @@ export default function ModalTarea({ visible, tarea, onClose, onSave }: ModalTar
     }
   }, [tarea, visible]);
 
+  // 🔁 Helpers de selección
   const toggleDia = (d: string) => {
     setDias(prev => (prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d]));
   };
@@ -101,26 +118,43 @@ export default function ModalTarea({ visible, tarea, onClose, onSave }: ModalTar
     setVistas(prev => ({ ...prev, [k]: !prev[k] }));
   };
 
+  // 💾 Guardar datos
   const handleGuardar = () => {
     const t: Tarea = {
       id: tarea?.id || Date.now().toString(),
       titulo: titulo.trim() || 'Sin título',
-      dias: null,
-      diasMes: null,
-      relativo: null,
+      descripcion: descripcion.trim() || '',
       fechaInicio: null,
       horaInicio: horaInicio || null,
       horaFin: horaFin || null,
+      repeticion: 'una_vez',
+      reglaRepeticion: null,
+      semanaDelMes: null,
+      diaDeSemana: null,
       color,
+      completada: tarea?.completada ?? false,
       ...vistas,
     };
 
+    // Tipo: única o repetitiva
     if (modoAlta === 'unica') {
       t.fechaInicio = fecha || null;
+      t.repeticion = 'una_vez';
     } else {
-      if (submodo === 'dias') t.dias = dias;
-      else if (submodo === 'numeros') t.diasMes = diasMes;
-      else if (submodo === 'relativo' && relativo) t.relativo = relativo;
+      // Repetitiva
+      t.repeticion = 'mensual'; // base por defecto, se puede ajustar luego
+      if (submodo === 'dias') {
+        t.repeticion = 'semanal';
+        t.reglaRepeticion = 'por_dias';
+        t.diaDeSemana = dias.join(',');
+      } else if (submodo === 'numeros') {
+        t.reglaRepeticion = 'por_dias_mes';
+      } else if (submodo === 'relativo' && relativo) {
+        t.repeticion = 'mensual';
+        t.reglaRepeticion = `${relativo.semana}_semana_${relativo.dia}`.toLowerCase();
+        t.semanaDelMes = relativo.semana;
+        t.diaDeSemana = relativo.dia.toLowerCase();
+      }
     }
 
     onSave(t);
@@ -139,6 +173,15 @@ export default function ModalTarea({ visible, tarea, onClose, onSave }: ModalTar
           placeholderTextColor="#999"
           value={titulo}
           onChangeText={setTitulo}
+        />
+
+        {/* 🔹 Descripción */}
+        <TextInput
+          style={styles.input}
+          placeholder="Descripción (opcional)"
+          placeholderTextColor="#999"
+          value={descripcion}
+          onChangeText={setDescripcion}
         />
 
         {/* 🔹 Tipo */}
@@ -163,7 +206,7 @@ export default function ModalTarea({ visible, tarea, onClose, onSave }: ModalTar
             <Text style={styles.label}>Fecha</Text>
             <TextInput
               style={styles.input}
-              placeholder="Ej: 25/10/2025"
+              placeholder="Ej: 2025-11-02"
               placeholderTextColor="#999"
               value={fecha}
               onChangeText={setFecha}
@@ -181,9 +224,9 @@ export default function ModalTarea({ visible, tarea, onClose, onSave }: ModalTar
                 >
                   <Text style={[styles.optionText, submodo === m && styles.optionTextActive]}>
                     {m === 'dias'
-                      ? 'Días'
+                      ? 'Por días'
                       : m === 'relativo'
-                      ? 'Relativo'
+                      ? 'Relativa (segundo lunes, etc.)'
                       : 'Por números'}
                   </Text>
                 </Pressable>
@@ -215,16 +258,13 @@ export default function ModalTarea({ visible, tarea, onClose, onSave }: ModalTar
                     <Pressable
                       key={s.value}
                       onPress={() =>
-                        setRelativo(prev =>
-                          prev && prev.semana === s.value
-                            ? { ...prev, semana: s.value }
-                            : { semana: s.value, dia: relativo?.dia || 'Lun' }
-                        )
+                        setRelativo(prev => ({
+                          ...prev,
+                          semana: s.value,
+                          dia: prev?.dia || 'Lun',
+                        }))
                       }
-                      style={[
-                        styles.dia,
-                        relativo?.semana === s.value && styles.diaActivo,
-                      ]}
+                      style={[styles.dia, relativo?.semana === s.value && styles.diaActivo]}
                     >
                       <Text
                         style={[
@@ -242,11 +282,11 @@ export default function ModalTarea({ visible, tarea, onClose, onSave }: ModalTar
                     <Pressable
                       key={d}
                       onPress={() =>
-                        setRelativo(prev =>
-                          prev && prev.dia === d
-                            ? { ...prev, dia: d }
-                            : { semana: relativo?.semana || 1, dia: d }
-                        )
+                        setRelativo(prev => ({
+                          ...prev,
+                          semana: prev?.semana || 1,
+                          dia: d,
+                        }))
                       }
                       style={[styles.dia, relativo?.dia === d && styles.diaActivo]}
                     >
@@ -288,14 +328,14 @@ export default function ModalTarea({ visible, tarea, onClose, onSave }: ModalTar
         <View style={styles.row}>
           <TextInput
             style={[styles.input, styles.horaInput]}
-            placeholder="Inicio"
+            placeholder="Inicio (HH:mm)"
             placeholderTextColor="#999"
             value={horaInicio}
             onChangeText={setHoraInicio}
           />
           <TextInput
             style={[styles.input, styles.horaInput]}
-            placeholder="Fin"
+            placeholder="Fin (HH:mm)"
             placeholderTextColor="#999"
             value={horaFin}
             onChangeText={setHoraFin}
@@ -314,7 +354,7 @@ export default function ModalTarea({ visible, tarea, onClose, onSave }: ModalTar
           ))}
         </View>
 
-        {/* 👁️ Aparece en... */}
+        {/* 👁️ Aparece en */}
         <Text style={styles.label}>Aparece en...</Text>
         <View style={styles.vistasRow}>
           {[
