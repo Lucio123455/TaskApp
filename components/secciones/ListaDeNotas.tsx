@@ -2,6 +2,7 @@ import React from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import 'react-native-gesture-handler';
 import NotaItem from '../Cards/NotaItem';
+/*IMPORTAR ESTAS INTERFACES*/
 interface Nota {
   id: string;
   titulo: string;
